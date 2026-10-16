@@ -36,9 +36,17 @@ jobs:
       - name: Analyze code
         run: flutter analyze --no-pub
 
-      # ВОТ ЭТОТ ШАГ РЕШАЕТ ПРОБЛЕМУ С ВЕРСИЯМИ GRADLE:
-      - name: Update Android project files
+      # --- МАГИЯ ЗДЕСЬ ---
+      - name: Remove conflicting manual Android files
+        run: |
+          rm -f android/gradle/wrapper/gradle-wrapper.properties
+          rm -f android/build.gradle.kts
+          rm -f android/app/build.gradle.kts
+          rm -f android/settings.gradle.kts
+
+      - name: Regenerate valid Android files
         run: flutter create . --platforms=android
+      # -------------------
 
       - name: Build APK
         run: flutter build apk --release
