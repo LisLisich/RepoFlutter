@@ -1,0 +1,63 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    name: Build & Test Flutter App
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Клонируем код репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Устанавливаем Java (необходимо для сборки Android)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. Устанавливаем Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # Или укажите конкретную версию, например: '3.24.0'
+          cache: true       # Включает кэширование для ускорения последующих сборок
+
+      # 4. Выводим версию Flutter (для отладки)
+      - name: Show Flutter version
+        run: flutter --version
+
+      # 5. Устанавливаем зависимости
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 6. Проверка кода на ошибки (анализ)
+      - name: Analyze code
+        run: flutter analyze --no-pub
+
+      # 7. Запуск тестов
+      - name: Run tests
+        run: flutter test
+
+      # 8. Сборка APK (для тестирования)
+      - name: Build APK
+        run: flutter build apk --release
+
+      # 9. Сборка App Bundle (для публикации в Google Play)
+      # Раскомментируйте, если нужно
+      # - name: Build App Bundle
+      #   run: flutter build appbundle --release
+
+      # 10. Сохранение артефактов (чтобы можно было скачать APK после сборки)
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
